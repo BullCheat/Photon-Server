@@ -13,6 +13,7 @@ import org.slf4j.impl.LoggingService
 
 import scala.collection.mutable
 import scala.util.{Failure, Success}
+import util.control.Breaks._
 
 /**
  * @author TheElectronWill
@@ -32,14 +33,25 @@ object PhotonServer {
 	final val DirWorlds: File = DirMain / "worlds"
 	final val DirLogs: File = DirMain / "logs"
 	final val Config: ServerConfig = new ServerConfig
+	final val WorldPluginsConfig: WorldPluginsConfig = new WorldPluginsConfig
 
 	// Worlds
 	private[this] val worldsNameMap = new mutable.AnyRefMap[String, World]
 
+	private var _worldsCache: List[World] = worldsNameMap.values.toList
+	def enabledWorlds: List[World] = _worldsCache
+
+
 	def world(name: String): Option[World] = worldsNameMap.get(name)
 
-	private[mcphoton] def registerWorld(w: World): Unit = worldsNameMap.put(w.name, w)
-	private[mcphoton] def unregisterWorld(w: World): Unit = worldsNameMap.remove(w.name)
+	private[mcphoton] def registerWorld(w: World): Unit = {
+		worldsNameMap.put(w.name, w)
+		_worldsCache = worldsNameMap.values.toList
+	}
+	private[mcphoton] def unregisterWorld(w: World): Unit = {
+		worldsNameMap.remove(w.name)
+		_worldsCache = worldsNameMap.values.toList
+	}
 
 	// ProtocolLib
 	private[this] var protocolLibAdapter: ProtocolLibAdapter = _
@@ -128,18 +140,21 @@ object PhotonServer {
 			solution.errors.foreach(s => logger.warn("    " + s))
 		}
 		for (resolved <- solution.resolvedItems) {
-			val pluginClass = resolved.loader.loadClass(resolved.infos.pluginClassName)
-			if (classOf[GlobalPlugin].isAssignableFrom(pluginClass)) {
-				val pluginInstance = pluginClass.newInstance().asInstanceOf[GlobalPlugin]
-				GlobalPluginSystem.enable(pluginInstance)
-				Config.spawnLocation.world.pluginSystem.enable(pluginInstance)
-			} else if (classOf[WorldPlugin].isAssignableFrom(pluginClass)) {
-				val pluginInstance = pluginClass.newInstance().asInstanceOf[WorldPlugin]
-				Config.spawnLocation.world.pluginSystem.enable(pluginInstance)
-			} else {
-				logger.warn(s"Plugin $pluginClass is not a GlobalPlugin nor a WorldPlugin.")
+			breakable {
+				val pluginClass = resolved.loader.loadClass(resolved.infos.pluginClassName)
+				val pluginInstance = pluginClass.newInstance().asInstanceOf[Plugin]
+				if (!classOf[GlobalPlugin].isAssignableFrom(pluginClass) && !classOf[WorldPlugin].isAssignableFrom(pluginClass)) {
+					logger.warn(s"Plugin $pluginClass is not a GlobalPlugin nor a WorldPlugin.")
+					break
+				}
+				if (classOf[GlobalPlugin].isAssignableFrom(pluginClass)) {
+					GlobalPluginSystem.enable(pluginInstance.asInstanceOf[GlobalPlugin])
+				}
+				// WorldPluginsConfig now handles Global <> World plugin type
+				for (enabledPluginWorld <- WorldPluginsConfig.getEnabledPluginWorlds(this, pluginInstance)) {
+					enabledPluginWorld.pluginSystem.enable(pluginInstance)
+				}
 			}
-			//TODO per-world plugin list
 		}
 	}
 
