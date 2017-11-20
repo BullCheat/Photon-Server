@@ -1,1 +1,5 @@
 language: java
+install :
+  - ./setup.sh
+  - mv Photon-ProtocolLib ..
+  - mv Utils ..
