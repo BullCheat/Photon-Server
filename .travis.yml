@@ -3,6 +3,7 @@ install:
 - "./setup.sh"
 - mv Photon-ProtocolLib ..
 - mv Utils ..
+script: gradle fatjar --daemon
 deploy:
   provider: releases
   api_key:
