@@ -3,12 +3,12 @@ install:
 - "./setup.sh"
 - mv Photon-ProtocolLib ..
 - mv Utils ..
-script: gradle fatjar --daemon
+script: gradle fatjar
 deploy:
   provider: releases
   api_key:
     secure: Pe6x7mq0PsLERoMUHfBkTtIjcVsO2y22snIul9tIZ5RGFQL6II745ngV8gZzY4nsUVcauZen2iBoTw8f4IFKdD0Me1fjGVlmlsxcjsWcYvTim9JTq551ZLblhp0DERJ6dSNQ9ga7RwlSWqVxFWmOuKaYIfdUk36vHeAAPL4Wv322Pjuums/VNyzHJ6rVJcYA1Yh/5f3m+Lm1hn9hU6AlUWwJscvbOfmg08JWVMOKNyfEdMEEMcNp0Z4kWL6XqaM/7hAC1ze63D/DMAU3os0CPKKoxFyqNm64aOt4ZZ9lINcKR8VYbeUx7Yy2KLFBEPUAZktQ5ZLRzEy9e13uDZQF2YmYr5MlVKPsqg00VEIu6kbAdx6FUifC+AUT6HQm9Aon4RRwwQmI24UlVUkP+QOObDWzl1nE/M0H36Vsr4DTWMTJwt0Bm7U97tTucag/bqWMxqzhl+PdZnw2Gwyik0pSQ4Y1ryDdkOAIbwMmXJwZsKDOtVNrFu1QZZZzlgJdHuIGWQk+M/S1TssrMJbO1mnOYoxBz48KsX/Rj5uqA0LcgnhYYZ4T/YBbz0f/ySmPS1WWMuTzV0BclytOFDFyPj6cWO7GTvqT3rdS/5hF0IMQb6Nx+t2JPkmmDsIk2/8lJnSlmGf8ppP6RTmTyA14dI28aS5gPi4tn4RTDvIHg9L+k8A=
-  file: build/libs/photon-server-all-0.5-alpha.jar
+  file: /home/travis/build/BullCheat/Photon-Server/build/libs/photon-server-all-0.5-alpha.jar
   on:
     repo: BullCheat/Photon-Server
     branch: scala-rewrite
